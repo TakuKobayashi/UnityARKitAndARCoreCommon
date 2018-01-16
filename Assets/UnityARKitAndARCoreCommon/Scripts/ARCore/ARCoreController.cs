@@ -30,6 +30,8 @@ namespace UnityARKitAndARCoreCommon
     /// </summary>
     public class ARCoreController : ARControllerBase
     {
+        [SerializeField] private GameObject EnvironmentalLightPrefab;
+
         /// <summary>
         /// A list to hold new planes ARCore began tracking in the current frame. This object is used across
         /// the application to avoid per-frame allocations.
@@ -46,6 +48,11 @@ namespace UnityARKitAndARCoreCommon
         /// True if the app is in the process of quitting due to an ARCore connection error, otherwise false.
         /// </summary>
         private bool m_IsQuitting = false;
+
+        protected override void Awake(){
+            base.Awake();
+            Util.InstantiateTo(this.gameObject, EnvironmentalLightPrefab);
+        }
 
         /// <summary>
         /// The Unity Update() method.

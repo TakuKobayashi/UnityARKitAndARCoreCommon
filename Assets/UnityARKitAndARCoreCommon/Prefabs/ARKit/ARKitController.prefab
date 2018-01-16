@@ -80,10 +80,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce3bd1b7755ab46d3ac51729c950443a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mainCamera: {fileID: 0}
+  ARMainCameraPrefab: {fileID: 1270081917934488, guid: 6c14c6cdb959c4f0190781783a213edb,
+    type: 2}
   TrackedPlanePrefab: {fileID: 1372998203143648, guid: f879aaf3eeb0c467eb22cbaf08dc97a4,
     type: 2}
-  pointCloudPrefab: {fileID: 1845574417345784, guid: 02d2a544d8d594d30b790e76398d0873,
+  PointCloudPrefab: {fileID: 1194888084362852, guid: f5378c967b45746d49e7e78a42d1bc5e,
     type: 2}
   fieldObjectAnchorRoot: {fileID: 1716284336249206}
   remoteConnectionPrefab: {fileID: 1214069642587422, guid: 8ce7d6271a01a4274a00066492aed04a,

@@ -36,5 +36,26 @@ namespace UnityARKitAndARCoreCommon
         {
             return InstantiateTo(parent, go).GetComponent<T>();
         }
+
+        public static T FindCompomentInChildren<T>(Transform root) where T : class
+        {
+            for (int i = 0; i < root.childCount; ++i)
+            {
+                Transform t = root.GetChild(i);
+                T compoment = t.GetComponent<T>();
+                if (!compoment.Equals(null))
+                {
+                    return compoment;
+                }
+
+                T childCompoment = FindCompomentInChildren<T>(t);
+                if (childCompoment != null)
+                {
+                    return childCompoment;
+                }
+            }
+
+            return null;
+        }
     }
 }

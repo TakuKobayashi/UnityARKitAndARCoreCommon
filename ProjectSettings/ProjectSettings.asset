@@ -764,7 +764,7 @@ PlayerSettings:
   facebookSdkVersion: 7.9.4
   apiCompatibilityLevel: 2
   cloudProjectId: 8e376cb0-4656-4fb5-8e01-ec9da93faebe
-  projectName: 
+  projectName: UnityARKitAndARCoreCommon
   organizationId: taptappunncj
   cloudEnabled: 0
   enableNativePlatformBackendsForNewInputSystem: 0
