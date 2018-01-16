@@ -1,14 +1,5 @@
 ﻿using UnityEngine;
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using System.IO;
-using System.Security.Cryptography;
-using System.Text;
-using System.Runtime.InteropServices;
-
 namespace UnityARKitAndARCoreCommon
 {
     public class Util
