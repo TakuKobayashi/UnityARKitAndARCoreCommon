@@ -84,7 +84,7 @@ MonoBehaviour:
     type: 2}
   TrackedPlanePrefab: {fileID: 1372998203143648, guid: f879aaf3eeb0c467eb22cbaf08dc97a4,
     type: 2}
-  PointCloudPrefab: {fileID: 1194888084362852, guid: f5378c967b45746d49e7e78a42d1bc5e,
+  PointCloudPrefab: {fileID: 1823615450448632, guid: db6dd780fcd04478680c2c3ba7c3db99,
     type: 2}
   fieldObjectAnchorRoot: {fileID: 1716284336249206}
   remoteConnectionPrefab: {fileID: 1214069642587422, guid: 8ce7d6271a01a4274a00066492aed04a,
