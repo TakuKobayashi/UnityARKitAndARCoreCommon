@@ -60,6 +60,7 @@ namespace ARKitAndARCoreCommon
         /// </summary>
         protected override void Update()
         {
+            base.Update();
             if (Input.GetKey(KeyCode.Escape))
             {
                 Application.Quit();
