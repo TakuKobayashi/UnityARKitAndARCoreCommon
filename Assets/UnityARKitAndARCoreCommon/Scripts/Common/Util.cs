@@ -1,7 +1,7 @@
-﻿using UnityEngine;
-
-namespace UnityARKitAndARCoreCommon
+﻿namespace ARKitAndARCoreCommon
 {
+    using UnityEngine;
+
     public class Util
     {
         public static void Normalize(Transform t)

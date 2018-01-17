@@ -1,7 +1,7 @@
-using UnityEngine;
-
-namespace UnityARKitAndARCoreCommon
+namespace ARKitAndARCoreCommon
 {
+    using UnityEngine;
+
     public abstract class ARControllerBase : MonoBehaviour
     {
         [SerializeField] protected GameObject ARMainCameraPrefab;

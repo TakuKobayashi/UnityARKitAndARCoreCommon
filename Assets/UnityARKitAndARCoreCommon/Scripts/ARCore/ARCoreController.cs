@@ -18,7 +18,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-namespace UnityARKitAndARCoreCommon
+namespace ARKitAndARCoreCommon
 {
     using System.Collections.Generic;
     using GoogleARCore;

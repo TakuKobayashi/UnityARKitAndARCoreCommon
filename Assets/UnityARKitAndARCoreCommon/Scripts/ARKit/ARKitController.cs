@@ -1,10 +1,9 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.XR.iOS;
-
-namespace UnityARKitAndARCoreCommon
+﻿namespace ARKitAndARCoreCommon
 {
+    using System.Collections.Generic;
+    using UnityEngine;
+    using UnityEngine.XR.iOS;
+
     public class ARKitController : ARControllerBase
     {
         [SerializeField] private GameObject fieldObjectAnchorRoot;
