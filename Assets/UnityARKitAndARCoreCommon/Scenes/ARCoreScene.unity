@@ -152,11 +152,6 @@ Prefab:
       propertyPath: m_RootOrder
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 114244665569805460, guid: 4bd3de473fa8d45159b3ac2f17c67609,
-        type: 2}
-      propertyPath: mainCamera
-      value: 
-      objectReference: {fileID: 1334311222}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 4bd3de473fa8d45159b3ac2f17c67609, type: 2}
   m_IsPrefabParent: 0
@@ -264,11 +259,6 @@ Prefab:
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: c10877f7cd5764de18d46d7b777d1faa, type: 2}
   m_IsPrefabParent: 0
---- !u!20 &1334311222 stripped
-Camera:
-  m_PrefabParentObject: {fileID: 20362215073346118, guid: c10877f7cd5764de18d46d7b777d1faa,
-    type: 2}
-  m_PrefabInternal: {fileID: 1334311221}
 --- !u!1 &2054792295
 GameObject:
   m_ObjectHideFlags: 0

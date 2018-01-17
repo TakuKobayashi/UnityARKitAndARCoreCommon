@@ -31,6 +31,7 @@ namespace UnityARKitAndARCoreCommon
     public class ARCoreController : ARControllerBase
     {
         [SerializeField] private GameObject EnvironmentalLightPrefab;
+        [SerializeField] private GameObject AndyAndroidPrefab;
 
         /// <summary>
         /// A list to hold new planes ARCore began tracking in the current frame. This object is used across
@@ -115,18 +116,18 @@ namespace UnityARKitAndARCoreCommon
 
             if (Session.Raycast(touch.position.x, touch.position.y, raycastFilter, out hit))
             {
-                //var andyObject = Instantiate(AndyAndroidPrefab, hit.Pose.position, hit.Pose.rotation);
+                var andyObject = Instantiate(AndyAndroidPrefab, hit.Pose.position, hit.Pose.rotation);
 
                 // Create an anchor to allow ARCore to track the hitpoint as understanding of the physical
                 // world evolves.
-                //var anchor = hit.Trackable.CreateAnchor(hit.Pose);
+                var anchor = hit.Trackable.CreateAnchor(hit.Pose);
 
                 // Andy should look at the camera but still be flush with the plane.
-                //andyObject.transform.LookAt(FirstPersonCamera.transform);
-                //andyObject.transform.rotation = Quaternion.Euler(0.0f, andyObject.transform.rotation.eulerAngles.y, andyObject.transform.rotation.z);
+                andyObject.transform.LookAt(mainCamera.transform);
+                andyObject.transform.rotation = Quaternion.Euler(0.0f, andyObject.transform.rotation.eulerAngles.y, andyObject.transform.rotation.z);
 
                 // Make Andy model a child of the anchor.
-                //andyObject.transform.parent = anchor.transform;
+                andyObject.transform.parent = anchor.transform;
             }
         }
 

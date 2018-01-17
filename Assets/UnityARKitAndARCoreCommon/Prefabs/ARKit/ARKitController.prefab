@@ -89,3 +89,5 @@ MonoBehaviour:
   fieldObjectAnchorRoot: {fileID: 1716284336249206}
   remoteConnectionPrefab: {fileID: 1214069642587422, guid: 8ce7d6271a01a4274a00066492aed04a,
     type: 2}
+  AndyAndroidPrefab: {fileID: 1190091649889860, guid: 242a320930b81430ba610f94f9b760c8,
+    type: 2}

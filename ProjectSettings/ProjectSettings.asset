@@ -383,7 +383,7 @@ PlayerSettings:
   enableInternalProfiler: 0
   logObjCUncaughtExceptions: 1
   enableCrashReportAPI: 0
-  cameraUsageDescription: AR BABY
+  cameraUsageDescription: UnityARKitAndARCoreCommon
   locationUsageDescription: 
   microphoneUsageDescription: 
   switchNetLibKey: 
@@ -763,9 +763,9 @@ PlayerSettings:
     Unity_Ads: 0
   facebookSdkVersion: 7.9.4
   apiCompatibilityLevel: 2
-  cloudProjectId: 8e376cb0-4656-4fb5-8e01-ec9da93faebe
-  projectName: UnityARKitAndARCoreCommon
-  organizationId: taptappunncj
+  cloudProjectId: 
+  projectName: 
+  organizationId: 
   cloudEnabled: 0
   enableNativePlatformBackendsForNewInputSystem: 0
   disableOldInputManagerSupport: 0

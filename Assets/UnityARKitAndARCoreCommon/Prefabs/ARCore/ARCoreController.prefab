@@ -59,3 +59,5 @@ MonoBehaviour:
     type: 2}
   EnvironmentalLightPrefab: {fileID: 1248447649449928, guid: cf498fc35b538884db557f7a9a2c0ef9,
     type: 2}
+  AndyAndroidPrefab: {fileID: 1190091649889860, guid: 242a320930b81430ba610f94f9b760c8,
+    type: 2}

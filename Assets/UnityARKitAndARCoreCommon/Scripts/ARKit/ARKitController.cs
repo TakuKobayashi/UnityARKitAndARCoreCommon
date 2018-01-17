@@ -9,6 +9,7 @@ namespace UnityARKitAndARCoreCommon
     {
         [SerializeField] private GameObject fieldObjectAnchorRoot;
         [SerializeField] private GameObject remoteConnectionPrefab;
+        [SerializeField] private GameObject AndyAndroidPrefab;
 
         private UnityARAnchorManager unityARAnchorManager;
 
@@ -28,12 +29,6 @@ namespace UnityARKitAndARCoreCommon
             Touch touch;
             if (Input.touchCount < 1 || (touch = Input.GetTouch(0)).phase != TouchPhase.Began)
             {
-                return;
-            }
-
-            if (EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId))
-            {
-                // かぶさってるので処理キャンセル（タップver）
                 return;
             }
 
@@ -58,8 +53,12 @@ namespace UnityARKitAndARCoreCommon
                 List<ARHitTestResult> hitResults = UnityARSessionNativeInterface.GetARSessionNativeInterface().HitTest(point, resultTypes[i]);
                 if (hitResults.Count > 0)
                 {
-                   Vector3 touchPosition = UnityARMatrixOps.GetPosition(hitResults[0].worldTransform);
-                   break;
+                    Matrix4x4 matrix = hitResults[0].worldTransform;
+                    var andyObject = Instantiate(AndyAndroidPrefab, UnityARMatrixOps.GetPosition(matrix), UnityARMatrixOps.GetRotation(matrix));
+                    andyObject.transform.LookAt(mainCamera.transform);
+                    andyObject.transform.rotation = Quaternion.Euler(0.0f, andyObject.transform.rotation.eulerAngles.y, andyObject.transform.rotation.z);
+                    andyObject.transform.parent = fieldObjectAnchorRoot.transform;
+                    break;
                }
            }
        }
