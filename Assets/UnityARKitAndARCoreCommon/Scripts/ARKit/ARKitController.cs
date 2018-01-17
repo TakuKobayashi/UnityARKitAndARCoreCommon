@@ -9,7 +9,7 @@ namespace UnityARKitAndARCoreCommon
     {
         [SerializeField] private GameObject fieldObjectAnchorRoot;
         [SerializeField] private GameObject remoteConnectionPrefab;
-        [SerializeField] private GameObject AndyAndroidPrefab;
+        [SerializeField] private GameObject AppearTouchPrefab;
 
         private UnityARAnchorManager unityARAnchorManager;
 
@@ -54,10 +54,10 @@ namespace UnityARKitAndARCoreCommon
                 if (hitResults.Count > 0)
                 {
                     Matrix4x4 matrix = hitResults[0].worldTransform;
-                    var andyObject = Instantiate(AndyAndroidPrefab, UnityARMatrixOps.GetPosition(matrix), UnityARMatrixOps.GetRotation(matrix));
-                    andyObject.transform.LookAt(mainCamera.transform);
-                    andyObject.transform.rotation = Quaternion.Euler(0.0f, andyObject.transform.rotation.eulerAngles.y, andyObject.transform.rotation.z);
-                    andyObject.transform.parent = fieldObjectAnchorRoot.transform;
+                    var touchedObject = Instantiate(AppearTouchPrefab, UnityARMatrixOps.GetPosition(matrix), UnityARMatrixOps.GetRotation(matrix));
+                    touchedObject.transform.LookAt(mainCamera.transform);
+                    touchedObject.transform.rotation = Quaternion.Euler(0.0f, touchedObject.transform.rotation.eulerAngles.y, touchedObject.transform.rotation.z);
+                    touchedObject.transform.parent = fieldObjectAnchorRoot.transform;
                     break;
                }
            }
