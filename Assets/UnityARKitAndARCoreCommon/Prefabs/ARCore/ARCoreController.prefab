@@ -117,7 +117,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18bf985b81c004031a71814f5a4013ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ARMainCameraPrefab: {fileID: 1905656715913530, guid: c10877f7cd5764de18d46d7b777d1faa,
+  ARMainCameraPrefab: {fileID: 1772147192650458, guid: c10877f7cd5764de18d46d7b777d1faa,
     type: 2}
   TrackedPlanePrefab: {fileID: 1654175882956584, guid: 6a35c744e5010405c847fad90282d2be,
     type: 2}
