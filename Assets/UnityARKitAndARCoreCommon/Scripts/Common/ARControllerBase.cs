@@ -28,6 +28,8 @@ namespace ARKitAndARCoreCommon
             {
                 mainCamera = mainCameraManager.GetComponent<Camera>();
             }
+            mainCamera.enabled = true;
+            mainCamera.gameObject.SetActive(true);
         }
 
         protected virtual void Update()
