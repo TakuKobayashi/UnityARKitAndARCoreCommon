@@ -19,7 +19,10 @@ namespace ARKitAndARCoreCommon
                 defaultCamera.enabled = false;
                 defaultCamera.gameObject.SetActive(false);
             }
-            GameObject mainCameraManager = Util.InstantiateTo(this.gameObject, ARMainCameraPrefab);
+            GameObject mainCameraManager = GameObject.Find(ARMainCameraPrefab.name);
+            if(mainCameraManager == null){
+                mainCameraManager = Util.InstantiateTo(this.gameObject, ARMainCameraPrefab);
+            }
             mainCamera = Util.FindCompomentInChildren<Camera>(mainCameraManager.transform);
             if (mainCamera == null)
             {
