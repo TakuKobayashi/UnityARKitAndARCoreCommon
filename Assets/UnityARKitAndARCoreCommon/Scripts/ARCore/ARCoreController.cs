@@ -25,6 +25,11 @@ namespace ARKitAndARCoreCommon
     using UnityEngine;
     using GoogleARCore.HelloAR;
 
+#if UNITY_EDITOR
+    // Set up touch input propagation while using Instant Preview in the editor.
+    using Input = GoogleARCore.InstantPreviewInput;
+#endif
+
     /// <summary>
     /// Controls the HelloAR example.
     /// </summary>
