@@ -26,6 +26,7 @@ namespace GoogleARCore.Examples.CloudAnchors
     using GoogleARCore.Examples.Common;
     using UnityEngine;
     using UnityEngine.UI;
+    using UnityEngine.Networking;
 
     /// <summary>
     /// Controller managing UI for the Cloud Anchors Example.
@@ -82,7 +83,8 @@ namespace GoogleARCore.Examples.CloudAnchors
         /// </summary>
         public void Start()
         {
-            IPAddressText.text = "My IP Address: " + Network.player.ipAddress;
+            NetworkIdentity identity = GetComponent<NetworkIdentity>();
+            IPAddressText.text = "My IP Address: " + identity.connectionToClient;
         }
 
         /// <summary>
