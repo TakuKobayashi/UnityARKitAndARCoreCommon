@@ -24,7 +24,7 @@
         {
             base.Update();
 
-            List<ARPlaneAnchorGameObject> arpags = unityARAnchorManager.GetCurrentPlaneAnchors();
+            LinkedList<ARPlaneAnchorGameObject> arpags = unityARAnchorManager.GetCurrentPlaneAnchors();
             Touch touch;
             if (Input.touchCount < 1 || (touch = Input.GetTouch(0)).phase != TouchPhase.Began)
             {
@@ -43,7 +43,9 @@
                 ARHitTestResultType.ARHitTestResultTypeExistingPlaneUsingExtent, 
                 // if you want to use infinite planes use this:
                 //ARHitTestResultType.ARHitTestResultTypeExistingPlane,
-                ARHitTestResultType.ARHitTestResultTypeHorizontalPlane,
+                ARHitTestResultType.ARHitTestResultTypeEstimatedHorizontalPlane,
+                ARHitTestResultType.ARHitTestResultTypeEstimatedVerticalPlane,
+                ARHitTestResultType.ARHitTestResultTypeFeaturePoint
                 //ARHitTestResultType.ARHitTestResultTypeFeaturePoint
             };
 
