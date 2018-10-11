@@ -39,7 +39,7 @@ namespace UnityEngine.XR.iOS
 	}
 
 	[Serializable]
-	public class ARResourceImage
+	public class ARResourceFilename
 	{
 		public string idiom;
 		public string filename;
@@ -48,8 +48,16 @@ namespace UnityEngine.XR.iOS
 	[Serializable]
 	public class ARResourceContents
 	{
-		public ARResourceImage [] images;
+		public ARResourceFilename [] images;
 		public ARResourceInfo info;
 		public ARResourceProperties properties;
+	}
+
+	[Serializable]
+	public class ARReferenceObjectResourceContents
+	{
+		public ARResourceFilename[] objects;
+		public ARResourceInfo info;
+		public string referenceObjectName;
 	}
 }
