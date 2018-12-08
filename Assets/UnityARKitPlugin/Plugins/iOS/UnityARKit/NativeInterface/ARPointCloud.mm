@@ -30,7 +30,17 @@ void* pointCloud_GetPointsPtr(const void* pointCloudPtr)
     return (void*) pointsPtr;
 }
 
-
+void* pointCloud_GetIdentifiersPtr(const void* pointCloudPtr)
+{
+    if (pointCloudPtr == nullptr)
+        return 0;
+    
+    ARPointCloud* pointCloud = (__bridge ARPointCloud*)pointCloudPtr;
+    
+    const UInt64 *identifiersPtr = [pointCloud identifiers];
+    
+    return (void*) identifiersPtr;
+}
 #ifdef __cplusplus
 }
 #endif

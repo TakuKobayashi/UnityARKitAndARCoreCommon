@@ -43,7 +43,7 @@ namespace UnityEngine.XR.iOS
         public UnityVideoParams videoParams;
         public UnityMarshalLightData lightData;
         public UnityARMatrix4x4 displayTransform;
-        public uint getPointCloudData;
+        public IntPtr pointCloud;
         public uint getLightEstimation;
 		public ARWorldMappingStatus worldMappngStatus;
     }
@@ -57,10 +57,10 @@ namespace UnityEngine.XR.iOS
         public UnityVideoParams videoParams;
         public UnityARLightData lightData;
         public UnityARMatrix4x4 displayTransform;
-        public Vector3[] pointCloudData;
+        public ARPointCloud pointCloud;
 		public ARWorldMappingStatus worldMappingStatus;
 
-		public UnityARCamera(UnityARMatrix4x4 wt, UnityARMatrix4x4 pm, ARTrackingState ats, ARTrackingStateReason atsr, UnityVideoParams uvp, UnityARLightData lightDat, UnityARMatrix4x4 dt, Vector3[] pointCloud, ARWorldMappingStatus awms)
+		public UnityARCamera(UnityARMatrix4x4 wt, UnityARMatrix4x4 pm, ARTrackingState ats, ARTrackingStateReason atsr, UnityVideoParams uvp, UnityARLightData lightDat, UnityARMatrix4x4 dt, ARPointCloud ptCloud, ARWorldMappingStatus awms)
         {
             worldTransform = wt;
             projectionMatrix = pm;
@@ -69,7 +69,7 @@ namespace UnityEngine.XR.iOS
             videoParams = uvp;
             lightData = lightDat;
             displayTransform = dt;
-            pointCloudData = pointCloud;
+            pointCloud = ptCloud;
 			worldMappingStatus = awms;
         }
     }
@@ -92,7 +92,7 @@ namespace UnityEngine.XR.iOS
         {
             // create an anchor data struct from a game object transform
             Matrix4x4 arkitTransform = UnityARMatrixOps.UnityToARKitCoordChange(go.transform.position, go.transform.rotation);
-           UnityARUserAnchorData ad = new UnityARUserAnchorData();
+            UnityARUserAnchorData ad = new UnityARUserAnchorData();
             ad.transform.column0 = arkitTransform.GetColumn(0);
             ad.transform.column1 = arkitTransform.GetColumn(1);
             ad.transform.column2 = arkitTransform.GetColumn(2);
@@ -255,13 +255,16 @@ namespace UnityEngine.XR.iOS
     {
         public UnityARAlignment alignment;
         public bool enableLightEstimation;
+        public IntPtr videoFormat;
         public bool IsSupported { get { return IsARKitFaceTrackingConfigurationSupported(); } private set { } }
 
         public ARKitFaceTrackingConfiguration(UnityARAlignment alignment = UnityARAlignment.UnityARAlignmentGravity,
-            bool enableLightEstimation = false)
+            bool enableLightEstimation = false,
+            IntPtr vidFormat = default(IntPtr))
         {
             this.alignment = alignment;
             this.enableLightEstimation = enableLightEstimation;
+            videoFormat = vidFormat;
         }
 
 #if UNITY_EDITOR || !UNITY_IOS
@@ -446,9 +449,6 @@ namespace UnityEngine.XR.iOS
 
         [DllImport("__Internal")]
         private static extern int GetTrackingQuality();
-
-        [DllImport("__Internal")]
-        private static extern bool GetARPointCloud (ref IntPtr verts, ref uint vertLength);
 
         [DllImport("__Internal")]
         private static extern void SetCameraNearFar (float nearZ, float farZ);
@@ -755,6 +755,7 @@ namespace UnityEngine.XR.iOS
             pubCamera.trackingReason = camera.trackingReason;
             pubCamera.videoParams = camera.videoParams;
 			pubCamera.worldMappingStatus = camera.worldMappngStatus;
+            pubCamera.pointCloud = ARPointCloud.FromPtr(camera.pointCloud);
 
             if (camera.getLightEstimation == 1)
             {
@@ -763,11 +764,6 @@ namespace UnityEngine.XR.iOS
 
             pubCamera.displayTransform = camera.displayTransform;
             s_Camera = pubCamera;
-
-            if (camera.getPointCloudData == 1)
-            {
-                UpdatePointCloudData(ref s_Camera);
-            }
 
             if (ARFrameUpdatedEvent != null)
             {
@@ -786,34 +782,6 @@ namespace UnityEngine.XR.iOS
             {
                 ARSessionTrackingChangedEvent(s_Camera);
             }
-        }
-
-        static void UpdatePointCloudData(ref UnityARCamera camera)
-        {
-            IntPtr ptrResultVerts = IntPtr.Zero;
-            uint resultVertLength = 0;
-            bool success = false;
-#if !UNITY_EDITOR &&  UNITY_IOS
-            success = GetARPointCloud (ref ptrResultVerts, ref resultVertLength);
-#endif
-            float[] resultVertices = null;
-            if (success)
-            {
-                // Load the results into a managed array.
-                resultVertices = new float[resultVertLength];
-                Marshal.Copy(ptrResultVerts, resultVertices, 0, (int)resultVertLength);
-
-                Vector3[] verts = new Vector3[(resultVertLength / 4)];
-
-                for (int count = 0; count < resultVertLength; count++)
-                {
-                    verts[count / 4].x = resultVertices[count++];
-                    verts[count / 4].y = resultVertices[count++];
-                    verts[count / 4].z = -resultVertices[count++];
-                }
-                camera.pointCloudData = verts;
-            }
-
         }
 
         static ARUserAnchor GetUserAnchorFromAnchorData(UnityARUserAnchorData anchor)

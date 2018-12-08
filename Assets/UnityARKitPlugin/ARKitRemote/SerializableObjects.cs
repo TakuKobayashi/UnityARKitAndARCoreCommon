@@ -257,18 +257,17 @@ namespace UnityEngine.XR.iOS.Utils
 			pointCloud = spc;
 			worldMappingStatus = awms;
 		}
-
-		public static implicit operator serializableUnityARCamera(UnityARCamera rValue)
-		{
-			return new serializableUnityARCamera(rValue.worldTransform, rValue.projectionMatrix, rValue.trackingState, rValue.trackingReason, rValue.videoParams, rValue.lightData, rValue.displayTransform, rValue.pointCloudData, rValue.worldMappingStatus);
-		}
-
+		#if UNITY_EDITOR
 		public static implicit operator UnityARCamera(serializableUnityARCamera rValue)
 		{
 			return new UnityARCamera (rValue.worldTransform, rValue.projectionMatrix, rValue.trackingState, rValue.trackingReason, rValue.videoParams, rValue.lightData, rValue.displayTransform, rValue.pointCloud, rValue.worldMappingStatus);
 		}
-
-
+		#else //!UNITY_EDITOR
+		public static implicit operator serializableUnityARCamera(UnityARCamera rValue)
+		{
+			return new serializableUnityARCamera(rValue.worldTransform, rValue.projectionMatrix, rValue.trackingState, rValue.trackingReason, rValue.videoParams, rValue.lightData, rValue.displayTransform, rValue.pointCloud, rValue.worldMappingStatus);
+		}
+		#endif
 	};
 
 	[Serializable]
@@ -565,54 +564,49 @@ namespace UnityEngine.XR.iOS.Utils
 	public class serializablePointCloud
 	{
 		public byte [] pointCloudData;
+		public byte[] pointCloudIds;
 
-		public serializablePointCloud(byte [] inputPoints)
+		public serializablePointCloud(byte [] inputPoints, byte [] inputIds)
 		{
 			pointCloudData = inputPoints;
+			pointCloudIds = inputIds;
 		}
 
-		public static implicit operator serializablePointCloud(Vector3 [] vecPointCloud)
+		#if !UNITY_EDITOR 
+		public static implicit operator serializablePointCloud(ARPointCloud pointCloud)
 		{
-			if (vecPointCloud != null)
+			byte[] pointsBuf = null;
+			byte[] idsBuf = null;
+
+			Vector3[] vecPointCloud = pointCloud.Points;
+			if (vecPointCloud != null && vecPointCloud.Length > 0)
 			{
-				byte [] createBuf = new byte[vecPointCloud.Length * sizeof(float) * 3];
+				pointsBuf = new byte[vecPointCloud.Length * sizeof(float) * 3];
 				for(int i = 0; i < vecPointCloud.Length; i++)
 				{
 					int bufferStart = i * 3;
-					Buffer.BlockCopy( BitConverter.GetBytes( vecPointCloud[i].x ), 0, createBuf, (bufferStart)*sizeof(float), sizeof(float) );
-					Buffer.BlockCopy( BitConverter.GetBytes( vecPointCloud[i].y ), 0, createBuf, (bufferStart+1)*sizeof(float), sizeof(float) );
-					Buffer.BlockCopy( BitConverter.GetBytes( vecPointCloud[i].z ), 0, createBuf, (bufferStart+2)*sizeof(float), sizeof(float) );
+					Buffer.BlockCopy( BitConverter.GetBytes( vecPointCloud[i].x ), 0, pointsBuf, (bufferStart)*sizeof(float), sizeof(float) );
+					Buffer.BlockCopy( BitConverter.GetBytes( vecPointCloud[i].y ), 0, pointsBuf, (bufferStart+1)*sizeof(float), sizeof(float) );
+					Buffer.BlockCopy( BitConverter.GetBytes( vecPointCloud[i].z ), 0, pointsBuf, (bufferStart+2)*sizeof(float), sizeof(float) );
 
 				}
-				return new serializablePointCloud (createBuf);
 			}
-			else 
-			{
-				return new serializablePointCloud(null);
-			}
-		}
 
-		public static implicit operator Vector3 [] (serializablePointCloud spc)
+			UInt64 [] idsPointCloud = pointCloud.Identifiers;
+			if (idsPointCloud != null && idsPointCloud.Length > 0)
+			{
+				idsBuf = new byte[idsPointCloud.Length * sizeof(ulong)];
+				Buffer.BlockCopy( BitConverter.GetBytes( idsPointCloud[0] ), 0, idsBuf, 0, idsPointCloud.Length * sizeof(ulong) );
+			}
+			
+			return new serializablePointCloud(pointsBuf, idsBuf);
+		}
+		#else  //in editor
+		public static implicit operator ARPointCloud (serializablePointCloud spc)
 		{
-			if (spc.pointCloudData != null) 
-			{
-				int numVectors = spc.pointCloudData.Length / (3 * sizeof(float));
-				Vector3 [] pointCloudVec = new Vector3[numVectors];
-				for (int i = 0; i < numVectors; i++) 
-				{
-					int bufferStart = i * 3;
-					pointCloudVec [i].x = BitConverter.ToSingle (spc.pointCloudData, (bufferStart) * sizeof(float));
-					pointCloudVec [i].y = BitConverter.ToSingle (spc.pointCloudData, (bufferStart+1) * sizeof(float));
-					pointCloudVec [i].z = BitConverter.ToSingle (spc.pointCloudData, (bufferStart+2) * sizeof(float));
-					
-				}
-				return pointCloudVec;
-			} 
-			else 
-			{
-				return null;
-			}
+			return new ARPointCloud(spc);
 		}
+		#endif
 	};
 
 	[Serializable]

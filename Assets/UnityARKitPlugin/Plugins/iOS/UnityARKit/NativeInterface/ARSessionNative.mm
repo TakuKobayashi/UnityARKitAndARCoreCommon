@@ -15,8 +15,6 @@ static UnityARMatrix4x4 s_CameraProjectionMatrix;
 static float s_AmbientIntensity;
 static int s_TrackingQuality;
 static float s_ShaderScale;
-static const vector_float3* s_PointCloud;
-static NSUInteger s_PointCloudSize;
 
 static float unityCameraNearZ;
 static float unityCameraFarZ;
@@ -128,9 +126,18 @@ inline void GetARFaceConfigurationFromARKitFaceConfiguration(ARKitFaceTrackingCo
 {
     appleConfig.worldAlignment = GetARWorldAlignmentFromUnityARAlignment(unityConfig.alignment);
     appleConfig.lightEstimationEnabled = (BOOL)unityConfig.enableLightEstimation;
+    
+    if (UnityIsARKit_1_5_Supported())
+    {
+        if (unityConfig.ptrVideoFormat != NULL)
+        {
+            appleConfig.videoFormat = (__bridge ARVideoFormat*) unityConfig.ptrVideoFormat;
+        }
+    }
+
 }
 
-static inline void GetUnityARCameraDataFromCamera(UnityARCamera& unityARCamera, ARCamera* camera, BOOL getPointCloudData)
+static inline void GetUnityARCameraDataFromCamera(UnityARCamera& unityARCamera, ARCamera* camera)
 {
     CGSize nativeSize = GetAppController().rootView.bounds.size;
     matrix_float4x4 projectionMatrix = [camera projectionMatrixForOrientation:[[UIApplication sharedApplication] statusBarOrientation] viewportSize:nativeSize zNear:(CGFloat)unityCameraNearZ zFar:(CGFloat)unityCameraFarZ];
@@ -140,7 +147,6 @@ static inline void GetUnityARCameraDataFromCamera(UnityARCamera& unityARCamera, 
     
     unityARCamera.trackingState = GetUnityARTrackingStateFromARTrackingState(camera.trackingState);
     unityARCamera.trackingReason = GetUnityARTrackingReasonFromARTrackingReason(camera.trackingStateReason);
-    unityARCamera.getPointCloudData = getPointCloudData;
 }
 
 inline void UnityARPlaneGeometryFromARPlaneGeometry(UnityARPlaneGeometry& planeGeometry, ARPlaneGeometry *arPlaneGeometry)
@@ -457,8 +463,6 @@ static CGAffineTransform s_CurAffineTransform;
 {
     s_AmbientIntensity = frame.lightEstimate.ambientIntensity;
     s_TrackingQuality = (int)frame.camera.trackingState;
-    s_PointCloud = frame.rawFeaturePoints.points;
-    s_PointCloudSize = frame.rawFeaturePoints.count;
 
     UIInterfaceOrientation orient = [[UIApplication sharedApplication] statusBarOrientation];
 
@@ -469,8 +473,16 @@ static CGAffineTransform s_CurAffineTransform;
 
     UnityARCamera unityARCamera;
 
-    GetUnityARCameraDataFromCamera(unityARCamera, frame.camera, _getPointCloudData);
+    GetUnityARCameraDataFromCamera(unityARCamera, frame.camera);
 
+    if (_getPointCloudData && frame.rawFeaturePoints != NULL)
+    {
+        unityARCamera.ptrPointCloud = (__bridge void *) frame.rawFeaturePoints;
+    }
+    else
+    {
+        unityARCamera.ptrPointCloud = nullptr;
+    }
     
     CVPixelBufferRef pixelBuffer = frame.capturedImage;
     
@@ -657,7 +669,7 @@ static CGAffineTransform s_CurAffineTransform;
     if (_arSessionTrackingChanged != NULL)
     {
         UnityARCamera unityCamera;
-        GetUnityARCameraDataFromCamera(unityCamera, camera, _getPointCloudData);
+        GetUnityARCameraDataFromCamera(unityCamera, camera);
         _arSessionTrackingChanged(unityCamera);
     }
 }
@@ -1055,13 +1067,6 @@ extern "C" void ReleaseVideoTextureHandles(UnityARTextureHandles handles)
     }
 }
 
-extern "C" bool GetARPointCloud(float** verts, unsigned int* vertLength)
-{
-    *verts = (float*)s_PointCloud;
-    *vertLength = (unsigned int)s_PointCloudSize * 4;
-    return YES;
-}
-
 extern "C" UnityARMatrix4x4 GetCameraProjectionMatrix()
 {
     return s_CameraProjectionMatrix;
@@ -1092,6 +1097,22 @@ extern "C" void EnumerateVideoFormats(UNITY_AR_VIDEOFORMAT_CALLBACK videoFormatC
     if (UnityIsARKit_1_5_Supported())
     {
         for(ARVideoFormat* arVideoFormat in ARWorldTrackingConfiguration.supportedVideoFormats)
+        {
+            UnityARVideoFormat videoFormat;
+            videoFormat.ptrVideoFormat = (__bridge void *)arVideoFormat;
+            videoFormat.imageResolutionWidth = arVideoFormat.imageResolution.width;
+            videoFormat.imageResolutionHeight = arVideoFormat.imageResolution.height;
+            videoFormat.framesPerSecond = arVideoFormat.framesPerSecond;
+            videoFormatCallback(videoFormat);
+        }
+    }
+}
+
+extern "C" void EnumerateFaceTrackingVideoFormats(UNITY_AR_VIDEOFORMAT_CALLBACK videoFormatCallback)
+{
+    if (UnityIsARKit_1_5_Supported())
+    {
+        for(ARVideoFormat* arVideoFormat in ARFaceTrackingConfiguration.supportedVideoFormats)
         {
             UnityARVideoFormat videoFormat;
             videoFormat.ptrVideoFormat = (__bridge void *)arVideoFormat;

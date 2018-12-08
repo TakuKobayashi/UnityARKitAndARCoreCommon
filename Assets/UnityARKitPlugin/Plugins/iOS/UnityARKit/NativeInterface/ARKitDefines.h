@@ -86,7 +86,7 @@ typedef struct
 {
     UnityARAlignment alignment;
     uint32_t enableLightEstimation;
-    
+    void *ptrVideoFormat;
 } ARKitFaceTrackingConfiguration;
 
 enum UnityARSessionRunOptions
@@ -218,7 +218,7 @@ typedef struct
     UnityVideoParams videoParams;
     UnityLightData lightData;
     UnityARMatrix4x4 displayTransform;
-    uint32_t getPointCloudData;
+    void* ptrPointCloud;
     uint32_t getLightEstimation;
     UnityARWorldMappingStatus worldMappingStatus;
 } UnityARCamera;
