@@ -5,7 +5,7 @@ namespace ARKitAndARCoreCommon
     public abstract class ARControllerBase : MonoBehaviour
     {
         [SerializeField] protected GameObject ARMainCameraPrefab;
-        [SerializeField] protected GameObject TrackedPlanePrefab;
+        [SerializeField] protected GameObject DetectedPlanePrefab;
         [SerializeField] private GameObject PointCloudPrefab;
 
         protected GameObject pointCloudObj;
