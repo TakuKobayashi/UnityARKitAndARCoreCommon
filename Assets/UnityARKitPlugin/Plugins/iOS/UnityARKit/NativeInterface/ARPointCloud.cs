@@ -8,6 +8,8 @@ namespace UnityEngine.XR.iOS
     public class ARPointCloud 
     {
         IntPtr m_Ptr;
+        Vector3[] m_Positions;
+        UInt64[] m_Identifiers;
 
         internal IntPtr nativePtr { get { return m_Ptr; } }
 
@@ -40,6 +42,8 @@ namespace UnityEngine.XR.iOS
                 throw new ArgumentException("ptr may not be IntPtr.Zero");
 
             m_Ptr = ptr;
+            GetPoints();
+            GetIdentifiers();
         }
 #if !UNITY_EDITOR && UNITY_IOS
         [DllImport("__Internal")]
@@ -53,121 +57,128 @@ namespace UnityEngine.XR.iOS
         
         int GetCount()
         {
+            if (m_Positions != null)
+            {
+                return m_Positions.Length;
+            }
+            
             return pointCloud_GetCount(m_Ptr);
         }
     
         Vector3[] GetPoints()
         {
+            if (m_Positions != null)
+            {
+                return m_Positions;
+            }
+            
             IntPtr pointsPtr = pointCloud_GetPointsPtr (m_Ptr);
             int pointCount = Count;
             if (pointCount <= 0 || pointsPtr == IntPtr.Zero) 
             {
                 return null;
             }
-            else 
+            
+            // Load the results into a managed array.
+            var floatCount = pointCount * 4;
+            float [] resultVertices = new float[floatCount];
+            Marshal.Copy(pointsPtr, resultVertices, 0, floatCount);
+
+            m_Positions = new Vector3[pointCount];
+
+            for (int count = 0; count < pointCount; count++)
             {
-                // Load the results into a managed array.
-                var floatCount = pointCount * 4;
-                float [] resultVertices = new float[floatCount];
-                Marshal.Copy(pointsPtr, resultVertices, 0, floatCount);
-
-                Vector3[] verts = new Vector3[pointCount];
-
-                for (int count = 0; count < pointCount; count++)
-                {
-                    //convert to Unity coords system
-                    verts[count].x = resultVertices[count * 4];
-                    verts[count].y = resultVertices[count * 4 + 1];
-                    verts[count].z = -resultVertices[count * 4 + 2];
-                }
-
-                return verts;
+                //convert to Unity coords system
+                m_Positions[count].x = resultVertices[count * 4];
+                m_Positions[count].y = resultVertices[count * 4 + 1];
+                m_Positions[count].z = -resultVertices[count * 4 + 2];
             }
+
+            return m_Positions;
         }
 
         UInt64[] GetIdentifiers()
         {
+            if (m_Identifiers != null)
+            {
+                return m_Identifiers;
+            }
+            
             IntPtr identifiersPtr = pointCloud_GetIdentifiersPtr(m_Ptr);
             int identifiersCount = Count;
             if (identifiersCount <= 0 || identifiersPtr == IntPtr.Zero) 
             {
                 return null;
             }
-            else 
+
+            // Load the results into a managed array.
+            Int64 [] copyIdentifiers = new Int64[identifiersCount];
+            Marshal.Copy(identifiersPtr, copyIdentifiers, 0, identifiersCount);
+
+            m_Identifiers = new UInt64[identifiersCount];
+            int index = 0;
+            foreach (Int64 identifier in copyIdentifiers)
             {
-                // Load the results into a managed array.
-                Int64 [] copyIdentifiers = new Int64[identifiersCount];
-                Marshal.Copy(identifiersPtr, copyIdentifiers, 0, identifiersCount);
-
-                UInt64 [] resultIdentifiers = new UInt64[identifiersCount];
-                int index = 0;
-                foreach (Int64 identifier in copyIdentifiers)
-                {
-                    //convert to UInt64
-                    resultIdentifiers[index++] = (UInt64) identifier;
-                }
-
-                return resultIdentifiers;
+                //convert to UInt64
+                m_Identifiers[index++] = (UInt64) identifier;
             }
+
+            return m_Identifiers;
         }
 #else
-        Vector3[] editorPointData;
-        UInt64[] editorPointIds;
         
         internal ARPointCloud(serializablePointCloud spc)
         {
             if (spc.pointCloudData != null) 
             {
                 int numVectors = spc.pointCloudData.Length / (3 * sizeof(float));
-                editorPointData = new Vector3[numVectors];
+                m_Positions = new Vector3[numVectors];
                 for (int i = 0; i < numVectors; i++) 
                 {
                     int bufferStart = i * 3;
-                    editorPointData[i].x = BitConverter.ToSingle (spc.pointCloudData, (bufferStart) * sizeof(float));
-                    editorPointData[i].y = BitConverter.ToSingle (spc.pointCloudData, (bufferStart+1) * sizeof(float));
-                    editorPointData[i].z = BitConverter.ToSingle (spc.pointCloudData, (bufferStart+2) * sizeof(float));
+                    m_Positions[i].x = BitConverter.ToSingle (spc.pointCloudData, (bufferStart) * sizeof(float));
+                    m_Positions[i].y = BitConverter.ToSingle (spc.pointCloudData, (bufferStart+1) * sizeof(float));
+                    m_Positions[i].z = BitConverter.ToSingle (spc.pointCloudData, (bufferStart+2) * sizeof(float));
                 }
             } 
             else 
             {
-                editorPointData = null;
+                m_Positions = null;
             }
 
             if (spc.pointCloudIds != null)
             {
-                int numIds = spc.pointCloudIds.Length;
-                editorPointIds = new ulong[numIds];
+                int numIds = spc.pointCloudIds.Length / sizeof(UInt64);
+                m_Identifiers = new ulong[numIds];
                 for (int i = 0; i < numIds; i++)
                 {
-                    editorPointIds[i] = BitConverter.ToUInt64(spc.pointCloudIds, i * sizeof(UInt64));
+                    m_Identifiers[i] = BitConverter.ToUInt64(spc.pointCloudIds, i * sizeof(UInt64));
                 }
             }
             else
             {
-                editorPointIds = null;
+                m_Identifiers = null;
             }
         }
 
         int GetCount()
         {
-            if (editorPointData == null)
+            if (m_Positions == null)
             {
                 return 0;
             }
-            else
-            {
-                return editorPointData.Length;
-            }
+
+            return m_Positions.Length;
         }
 
         Vector3[] GetPoints()
         {
-            return editorPointData;
+            return m_Positions;
         }
 
         UInt64[] GetIdentifiers()
         {
-            return editorPointIds;
+            return m_Identifiers;
         }
 #endif
 

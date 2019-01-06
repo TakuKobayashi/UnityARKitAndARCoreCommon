@@ -28,6 +28,7 @@ typedef struct
     uint32_t getPointCloudData;
 } ARKitObjectScanningSessionConfiguration;
 
+API_AVAILABLE(ios(12.0))
 inline void UnityARObjectAnchorDataFromARObjectAnchorPtr(UnityARObjectAnchorData& anchorData, ARObjectAnchor* nativeAnchor)
 {
     anchorData.identifier = (void*)[nativeAnchor.identifier.UUIDString UTF8String];
@@ -36,6 +37,7 @@ inline void UnityARObjectAnchorDataFromARObjectAnchorPtr(UnityARObjectAnchorData
     anchorData.referenceObjectPtr = (__bridge void*) nativeAnchor.referenceObject;
 }
 
+API_AVAILABLE(ios(12.0))
 inline void GetARSessionConfigurationFromARKitObjectScanningSessionConfiguration(ARKitObjectScanningSessionConfiguration& unityConfig, ARObjectScanningConfiguration* appleConfig)
 {
     appleConfig.planeDetection = GetARPlaneDetectionFromUnityARPlaneDetection(unityConfig.planeDetection);
@@ -65,21 +67,30 @@ typedef void (*UNITY_AR_OBJECT_ANCHOR_CALLBACK)(UnityARObjectAnchorData anchorDa
 -(void)sendAnchorAddedEvent:(ARAnchor*)anchor
 {
     UnityARObjectAnchorData data;
-    UnityARObjectAnchorDataFromARObjectAnchorPtr(data, (ARObjectAnchor*)anchor);
+    if (@available(iOS 12.0, *))
+    {
+        UnityARObjectAnchorDataFromARObjectAnchorPtr(data, (ARObjectAnchor*)anchor);
+    }
     _anchorAddedCallback(data);
 }
 
 -(void)sendAnchorRemovedEvent:(ARAnchor*)anchor
 {
     UnityARObjectAnchorData data;
-    UnityARObjectAnchorDataFromARObjectAnchorPtr(data, (ARObjectAnchor*)anchor);
+    if (@available(iOS 12.0, *))
+    {
+        UnityARObjectAnchorDataFromARObjectAnchorPtr(data, (ARObjectAnchor*)anchor);
+    }
     _anchorRemovedCallback(data);
 }
 
 -(void)sendAnchorUpdatedEvent:(ARAnchor*)anchor
 {
     UnityARObjectAnchorData data;
-    UnityARObjectAnchorDataFromARObjectAnchorPtr(data, (ARObjectAnchor*)anchor);
+    if (@available(iOS 12.0, *))
+    {
+        UnityARObjectAnchorDataFromARObjectAnchorPtr(data, (ARObjectAnchor*)anchor);
+    }
     _anchorUpdatedCallback(data);
 }
 
@@ -96,7 +107,10 @@ extern "C" void session_SetObjectAnchorCallbacks(const void* session, UNITY_AR_O
         objectAnchorCallbacks->_anchorAddedCallback = objectAnchorAddedCallback;
         objectAnchorCallbacks->_anchorUpdatedCallback = objectAnchorUpdatedCallback;
         objectAnchorCallbacks->_anchorRemovedCallback = objectAnchorRemovedCallback;
-        [nativeSession->_classToCallbackMap setObject:objectAnchorCallbacks forKey:[ARObjectAnchor class]];
+        if (@available(iOS 12.0, *))
+        {
+            [nativeSession->_classToCallbackMap setObject:objectAnchorCallbacks forKey:[ARObjectAnchor class]];
+        }
     }
 }
 
@@ -106,27 +120,38 @@ extern "C" {
 
 bool IsARKitObjectScanningConfigurationSupported()
 {
-    return ARObjectScanningConfiguration.isSupported;
+    if (@available(iOS 12.0, *))
+    {
+        return ARObjectScanningConfiguration.isSupported;
+    }
+    else
+    {
+        // Fallback on earlier versions
+        return false;
+    }
 }
     
 void StartObjectScanningSessionWithOptions(void* nativeSession, ARKitObjectScanningSessionConfiguration unityConfig, UnityARSessionRunOptions runOptions)
 {
     UnityARSession* session = (__bridge UnityARSession*)nativeSession;
-    ARObjectScanningConfiguration* config = [ARObjectScanningConfiguration new];
     ARSessionRunOptions runOpts = GetARSessionRunOptionsFromUnityARSessionRunOptions(runOptions);
-    GetARSessionConfigurationFromARKitObjectScanningSessionConfiguration(unityConfig, config);
     session->_getLightEstimation = (BOOL) unityConfig.enableLightEstimation;
     session->_getPointCloudData = (BOOL) unityConfig.getPointCloudData;
-    
-    if(!UnityIsARKit_2_0_Supported())
+    if (@available(iOS 12.0, *))
     {
-        NSLog(@"ARKit error: your device does not support ARKit 2.0");
+        ARObjectScanningConfiguration* config = [ARObjectScanningConfiguration new];
+        GetARSessionConfigurationFromARKitObjectScanningSessionConfiguration(unityConfig, config);
+        if (runOptions == UnityARSessionRunOptionsNone)
+            [session->_session runWithConfiguration:config];
+        else
+            [session->_session runWithConfiguration:config options:runOpts];
     }
-    
-    if (runOptions == UnityARSessionRunOptionsNone)
-        [session->_session runWithConfiguration:config];
     else
-        [session->_session runWithConfiguration:config options:runOpts];
+    {
+        // Fallback on earlier versions
+        NSLog(@"ARKit error: your device does not support ARKit 2.0");
+        return;
+    }
     
     [session setupMetal];
 }
@@ -138,16 +163,24 @@ bool referenceObject_ExportObjectToURL(const void* ptr, const char* path)
 {
     if (ptr == nullptr || path == nullptr)
         return false;
-    
-    ARReferenceObject* referenceObject = (__bridge ARReferenceObject*)ptr;
-    NSError* error = nil;
-    NSURL* url = [[NSURL alloc] initFileURLWithPath:[NSString stringWithUTF8String:path] isDirectory:false];
-    [referenceObject exportObjectToURL:url previewImage:nil error:&error];
-    
-    if (error)
-        NSLog(@"%@", error);
-    
-    return (error == nil);
+
+    if (@available(iOS 12.0, *))
+    {
+        NSError* error = nil;
+        ARReferenceObject* referenceObject = (__bridge ARReferenceObject*)ptr;
+        NSURL* url = [[NSURL alloc] initFileURLWithPath:[NSString stringWithUTF8String:path] isDirectory:false];
+        [referenceObject exportObjectToURL:url previewImage:nil error:&error];
+        
+        if (error)
+            NSLog(@"%@", error);
+
+        return (error == nil);
+    }
+    else
+    {
+        // Fallback on earlier versions
+        return false;
+    }
 }
 
 bool referenceObject_Save(const void* referenceObjectPtr, const char* path)
@@ -155,16 +188,24 @@ bool referenceObject_Save(const void* referenceObjectPtr, const char* path)
     if (referenceObjectPtr == nullptr || path == nullptr || !referenceObject_GetSupported())
         return false;
     
-    ARReferenceObject* referenceObject = (__bridge ARReferenceObject*)referenceObjectPtr;
-    NSError* writeError = nil;
-    NSURL* url = [[NSURL alloc] initFileURLWithPath:[NSString stringWithUTF8String:path] isDirectory:false];
-    NSData *data = [NSKeyedArchiver archivedDataWithRootObject:referenceObject];
-    [data writeToURL:url options:(NSDataWritingAtomic) error:&writeError];
-    
-    if (writeError)
-        NSLog(@"%@", writeError);
-    
-    return (writeError == nil);
+    if (@available(iOS 12.0, *))
+    {
+        ARReferenceObject* referenceObject = (__bridge ARReferenceObject*)referenceObjectPtr;
+        NSError* writeError = nil;
+        NSURL* url = [[NSURL alloc] initFileURLWithPath:[NSString stringWithUTF8String:path] isDirectory:false];
+        NSData *data = [NSKeyedArchiver archivedDataWithRootObject:referenceObject];
+        [data writeToURL:url options:(NSDataWritingAtomic) error:&writeError];
+        
+        if (writeError)
+            NSLog(@"%@", writeError);
+        
+        return (writeError == nil);
+    }
+    else
+    {
+        // Fallback on earlier versions
+        return false;
+    }
 }
 
 void* referenceObject_Load(const char* path)
@@ -172,16 +213,24 @@ void* referenceObject_Load(const char* path)
     if (!referenceObject_GetSupported())
         return nullptr;
     
-    NSError* error = nil;
-    NSURL* url = [[NSURL alloc] initFileURLWithPath:[NSString stringWithUTF8String:path] isDirectory:false];
-    NSData *rodata = [NSData dataWithContentsOfURL:url options:NSDataReadingMappedAlways error:&error];
+    if (@available(iOS 12.0, *))
+    {
+        NSError* error = nil;
+        NSURL* url = [[NSURL alloc] initFileURLWithPath:[NSString stringWithUTF8String:path] isDirectory:false];
+        NSData *rodata = [NSData dataWithContentsOfURL:url options:NSDataReadingMappedAlways error:&error];
 
-    if (error)
-        NSLog(@"%@", error);
-    
-    ARReferenceObject* referenceObject = [NSKeyedUnarchiver unarchiveObjectWithData:rodata];
-    
-    return (__bridge_retained void*)referenceObject;
+        if (error)
+            NSLog(@"%@", error);
+        
+        ARReferenceObject* referenceObject = [NSKeyedUnarchiver unarchiveObjectWithData:rodata];
+        
+        return (__bridge_retained void*)referenceObject;
+    }
+    else
+    {
+        // Fallback on earlier versions
+        return nullptr;
+    }
 }
 
 void* referenceObject_InitWithArchiveUrl(const char* path)
@@ -189,39 +238,65 @@ void* referenceObject_InitWithArchiveUrl(const char* path)
     if (!referenceObject_GetSupported())
         return nullptr;
     
-    NSError* error = nil;
-    NSURL* url = [[NSURL alloc] initFileURLWithPath:[NSString stringWithUTF8String:path] isDirectory:false];
-    
-    ARReferenceObject* referenceObject = [[ARReferenceObject alloc] initWithArchiveURL:url error:&error];
-    
-    if (error)
-        NSLog(@"%@", error);
-    
-    return (__bridge_retained void*)referenceObject;
+    if (@available(iOS 12.0, *))
+    {
+        NSError* error = nil;
+        NSURL* url = [[NSURL alloc] initFileURLWithPath:[NSString stringWithUTF8String:path] isDirectory:false];
+        
+        ARReferenceObject* referenceObject = [[ARReferenceObject alloc] initWithArchiveURL:url error:&error];
+        
+        if (error)
+            NSLog(@"%@", error);
+        
+        return (__bridge_retained void*)referenceObject;
+    }
+    else
+    {
+        // Fallback on earlier versions
+        return nullptr;
+    }
 }
     
 long referenceObject_SerializedLength(const void* referenceObjectPtr)
 {
-    ARReferenceObject* referenceObject = (__bridge ARReferenceObject*)referenceObjectPtr;
-    NSData *data = [NSKeyedArchiver archivedDataWithRootObject:referenceObject];
-    return data.length;
+    if (@available(iOS 12.0, *))
+    {
+        ARReferenceObject* referenceObject = (__bridge ARReferenceObject*)referenceObjectPtr;
+        NSData *data = [NSKeyedArchiver archivedDataWithRootObject:referenceObject];
+        return data.length;
+    }
+    else
+    {
+        // Fallback on earlier versions
+        return 0;
+    }
 }
 
 void referenceObject_SerializeToByteArray(const void*  referenceObjectPtr, void*  pinnedArray)
 {
-    ARReferenceObject* referenceObject = (__bridge ARReferenceObject*)referenceObjectPtr;
-    NSData *data = [NSKeyedArchiver archivedDataWithRootObject:referenceObject];
-    memcpy(pinnedArray, data.bytes, data.length);
-    
+    if (@available(iOS 12.0, *))
+    {
+        ARReferenceObject* referenceObject = (__bridge ARReferenceObject*)referenceObjectPtr;
+        NSData *data = [NSKeyedArchiver archivedDataWithRootObject:referenceObject];
+        memcpy(pinnedArray, data.bytes, data.length);
+    }
 }
 
 void* referenceObject_SerializeFromByteArray(const void*  pinnedArray, long lengthBytes)
 {
-    NSData *rodata = [NSData dataWithBytes:pinnedArray length:lengthBytes];
     
-    ARReferenceObject* referenceObject = [NSKeyedUnarchiver unarchiveObjectWithData:rodata];
+    if (@available(iOS 12.0, *))
+    {
+        NSData *rodata = [NSData dataWithBytes:pinnedArray length:lengthBytes];
+        ARReferenceObject* referenceObject = [NSKeyedUnarchiver unarchiveObjectWithData:rodata];
+        return (__bridge_retained void*)referenceObject;
+    }
+    else
+    {
+        // Fallback on earlier versions
+        return nullptr;
+    }
     
-    return (__bridge_retained void*)referenceObject;
 }
 
 UnityARVector3 referenceObject_GetCenter(const void* ptr)
@@ -229,13 +304,21 @@ UnityARVector3 referenceObject_GetCenter(const void* ptr)
     if (ptr == nullptr)
         return UnityARVector3{0, 0, 0};
     
-    ARReferenceObject* referenceObject = (__bridge ARReferenceObject*)ptr;
-    return UnityARVector3
+    if (@available(iOS 12.0, *))
     {
-        referenceObject.center.x,
-        referenceObject.center.y,
-        referenceObject.center.z
-    };
+        ARReferenceObject* referenceObject = (__bridge ARReferenceObject*)ptr;
+        return UnityARVector3
+        {
+            referenceObject.center.x,
+            referenceObject.center.y,
+            referenceObject.center.z
+        };
+    }
+    else
+    {
+        // Fallback on earlier versions
+        return UnityARVector3{0, 0, 0};
+    }
 }
 
 UnityARVector3 referenceObject_GetExtent(const void* ptr)
@@ -243,13 +326,21 @@ UnityARVector3 referenceObject_GetExtent(const void* ptr)
     if (ptr == nullptr)
         return UnityARVector3{0, 0, 0};
     
-    ARReferenceObject* referenceObject = (__bridge ARReferenceObject*)ptr;
-    return UnityARVector3
+    if (@available(iOS 12.0, *))
     {
-        referenceObject.extent.x,
-        referenceObject.extent.y,
-        referenceObject.extent.z
-    };
+        ARReferenceObject* referenceObject = (__bridge ARReferenceObject*)ptr;
+        return UnityARVector3
+        {
+            referenceObject.extent.x,
+            referenceObject.extent.y,
+            referenceObject.extent.z
+        };
+    }
+    else
+    {
+        // Fallback on earlier versions
+        return UnityARVector3{0, 0, 0};
+    }
 }
 
 void referenceObject_SetName(void* ptr, const char* name)
@@ -257,8 +348,11 @@ void referenceObject_SetName(void* ptr, const char* name)
     if (ptr == nullptr)
         return;
     
-    ARReferenceObject* referenceObject = (__bridge ARReferenceObject*)ptr;
-    referenceObject.name = [[NSString alloc] initWithUTF8String:name];
+    if (@available(iOS 12.0, *))
+    {
+        ARReferenceObject* referenceObject = (__bridge ARReferenceObject*)ptr;
+        referenceObject.name = [[NSString alloc] initWithUTF8String:name];
+    }
 }
     
 const char* referenceObject_GetName(void* ptr)
@@ -266,15 +360,22 @@ const char* referenceObject_GetName(void* ptr)
     if (ptr == nullptr)
         return nullptr;
     
-    ARReferenceObject* referenceObject = (__bridge ARReferenceObject*)ptr;
-    const char* nameAsCStr = [referenceObject.name UTF8String];
-    
-    // Make a copy because IL2CPP is going to try to free what we return
-    const size_t length = strlen(nameAsCStr);
-    char* retVal = (char*)malloc(length + 1);
-    strcpy(retVal, nameAsCStr);
-    
-    return retVal;
+    if (@available(iOS 12.0, *))
+    {
+        ARReferenceObject* referenceObject = (__bridge ARReferenceObject*)ptr;
+        const char* nameAsCStr = [referenceObject.name UTF8String];
+        // Make a copy because IL2CPP is going to try to free what we return
+        const size_t length = strlen(nameAsCStr);
+        char* retVal = (char*)malloc(length + 1);
+        strcpy(retVal, nameAsCStr);
+        
+        return retVal;
+    }
+    else
+    {
+        // Fallback on earlier versions
+        return nullptr;
+    }
 }
     
 void* referenceObject_GetPointCloud(const void* referenceObjectPtr)
@@ -282,27 +383,44 @@ void* referenceObject_GetPointCloud(const void* referenceObjectPtr)
     if (referenceObjectPtr == nullptr || !UnityAreFeaturesSupported(kUnityARKitSupportedFeaturesReferenceObject))
         return nullptr;
     
-    ARReferenceObject* referenceObject = (__bridge ARReferenceObject*)referenceObjectPtr;
+    if (@available(iOS 12.0, *))
+    {
+        ARReferenceObject* referenceObject = (__bridge ARReferenceObject*)referenceObjectPtr;
+        ARPointCloud *pointCloud = [referenceObject rawFeaturePoints];
+        
+        return (__bridge_retained void*)pointCloud;
+    }
+    else
+    {
+        // Fallback on earlier versions
+        return nullptr;
+    }
     
-    ARPointCloud *pointCloud = [referenceObject rawFeaturePoints];
-    
-    return (__bridge_retained void*)pointCloud;
 }
 
 void* referenceObjectsSet_Create()
 {
-    NSMutableSet<ARReferenceObject*> *referenceObjectsSet = [[NSMutableSet<ARReferenceObject*> alloc] init];
-    return (__bridge_retained void*) referenceObjectsSet;
+    if (@available(iOS 12.0, *))
+    {
+        NSMutableSet<ARReferenceObject*> *referenceObjectsSet = [[NSMutableSet<ARReferenceObject*> alloc] init];
+        return (__bridge_retained void*) referenceObjectsSet;
+    }
+    else
+    {
+        // Fallback on earlier versions
+        return nullptr;
+    }
 }
 
 void referenceObjectsSet_AddReferenceObject(void* roSet, void* referenceObject)
 {
-    NSMutableSet<ARReferenceObject*> *referenceObjectsSet = (__bridge NSMutableSet<ARReferenceObject*> *)roSet;
-    ARReferenceObject* refObject = (__bridge ARReferenceObject*)referenceObject;
-    [referenceObjectsSet addObject:refObject];
+    if (@available(iOS 12.0, *))
+    {
+        NSMutableSet<ARReferenceObject*> *referenceObjectsSet = (__bridge NSMutableSet<ARReferenceObject*> *)roSet;
+        ARReferenceObject* refObject = (__bridge ARReferenceObject*)referenceObject;
+        [referenceObjectsSet addObject:refObject];
+    }
 }
-
-    
 
 #ifdef __cplusplus
 }

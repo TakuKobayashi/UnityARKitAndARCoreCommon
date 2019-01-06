@@ -67,6 +67,7 @@ inline void UnityAREnvironmentProbeCubemapDataFromMTLTextureRef(UnityAREnvironme
     cubemapData.mipmapCount = (int)[environmentTexture mipmapLevelCount];
 }
 
+API_AVAILABLE(ios(12.0))
 inline void UnityAREnvironmentProbeAnchorDataFromAREnvironmentProbeAnchorPtr(UnityAREnvironmentProbeAnchorData& anchorData, AREnvironmentProbeAnchor* nativeAnchor)
 {
     anchorData.identifier = (void*)[nativeAnchor.identifier.UUIDString UTF8String];
@@ -95,23 +96,31 @@ typedef void (*UNITY_AR_ENVPROBE_ANCHOR_CALLBACK)(UnityAREnvironmentProbeAnchorD
 
 -(void)sendAnchorAddedEvent:(ARAnchor*)anchor
 {
-    UnityAREnvironmentProbeAnchorData data;
-    UnityAREnvironmentProbeAnchorDataFromAREnvironmentProbeAnchorPtr(data, (AREnvironmentProbeAnchor*)anchor);
-    _anchorAddedCallback(data);
+    if (@available(iOS 12.0, *))
+    {
+        UnityAREnvironmentProbeAnchorData data;
+        UnityAREnvironmentProbeAnchorDataFromAREnvironmentProbeAnchorPtr(data, (AREnvironmentProbeAnchor*)anchor);
+        _anchorAddedCallback(data);
+    }
 }
 
 -(void)sendAnchorRemovedEvent:(ARAnchor*)anchor
 {
-    UnityAREnvironmentProbeAnchorData data;
-    UnityAREnvironmentProbeAnchorDataFromAREnvironmentProbeAnchorPtr(data, (AREnvironmentProbeAnchor*)anchor);
-    _anchorRemovedCallback(data);
+    if (@available(iOS 12.0, *)) {
+        UnityAREnvironmentProbeAnchorData data;
+        UnityAREnvironmentProbeAnchorDataFromAREnvironmentProbeAnchorPtr(data, (AREnvironmentProbeAnchor*)anchor);
+        _anchorRemovedCallback(data);
+    }
 }
 
 -(void)sendAnchorUpdatedEvent:(ARAnchor*)anchor
 {
-    UnityAREnvironmentProbeAnchorData data;
-    UnityAREnvironmentProbeAnchorDataFromAREnvironmentProbeAnchorPtr(data, (AREnvironmentProbeAnchor*)anchor);
-    _anchorUpdatedCallback(data);
+    if (@available(iOS 12.0, *))
+    {
+        UnityAREnvironmentProbeAnchorData data;
+        UnityAREnvironmentProbeAnchorDataFromAREnvironmentProbeAnchorPtr(data, (AREnvironmentProbeAnchor*)anchor);
+        _anchorUpdatedCallback(data);
+    }
 }
 
 @end
@@ -128,10 +137,12 @@ extern "C" UnityAREnvironmentProbeAnchorData SessionAddEnvironmentProbeAnchor(vo
         UnityARSession* session = (__bridge UnityARSession*)nativeSession;
         matrix_float4x4 initMat;
         UnityARMatrix4x4ToARKitMatrix(anchorData.transform, &initMat);
-        AREnvironmentProbeAnchor *newAnchor = [[AREnvironmentProbeAnchor alloc] initWithTransform:initMat];
-        
-        [session->_session addAnchor:newAnchor];
-        UnityAREnvironmentProbeAnchorDataFromAREnvironmentProbeAnchorPtr(returnAnchorData, newAnchor);
+        if (@available(iOS 12.0, *))
+        {
+            AREnvironmentProbeAnchor *newAnchor = [[AREnvironmentProbeAnchor alloc] initWithTransform:initMat];
+            [session->_session addAnchor:newAnchor];
+            UnityAREnvironmentProbeAnchorDataFromAREnvironmentProbeAnchorPtr(returnAnchorData, newAnchor);
+        }
     }
     
     return returnAnchorData;
@@ -150,7 +161,9 @@ extern "C" void session_SetEnvironmentProbeAnchorCallbacks(const void* session, 
         envProbeAnchorCallbacks->_anchorAddedCallback = envProbeAnchorAddedCallback;
         envProbeAnchorCallbacks->_anchorUpdatedCallback = envProbeAnchorUpdatedCallback;
         envProbeAnchorCallbacks->_anchorRemovedCallback = envProbeAnchorRemovedCallback;
-        [nativeSession->_classToCallbackMap setObject:envProbeAnchorCallbacks forKey:[AREnvironmentProbeAnchor class]];
+        if (@available(iOS 12.0, *)) {
+            [nativeSession->_classToCallbackMap setObject:envProbeAnchorCallbacks forKey:[AREnvironmentProbeAnchor class]];
+        } 
     }
 }
 

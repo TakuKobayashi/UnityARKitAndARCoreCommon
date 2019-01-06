@@ -18,16 +18,24 @@ bool worldMap_Save(const void* worldMapPtr, const char* path)
     if (worldMapPtr == nullptr || path == nullptr || !worldMap_GetSupported())
         return false;
     
-    ARWorldMap* worldMap = (__bridge ARWorldMap*)worldMapPtr;
-    NSError* writeError = nil;
-    NSURL* url = [[NSURL alloc] initFileURLWithPath:[NSString stringWithUTF8String:path] isDirectory:false];
-    NSData *data = [NSKeyedArchiver archivedDataWithRootObject:worldMap];
-    [data writeToURL:url options:(NSDataWritingAtomic) error:&writeError];
- 
-    if (writeError)
-        NSLog(@"%@", writeError);
-
-    return (writeError == nil);
+    if (@available(iOS 12.0, *))
+    {
+        ARWorldMap* worldMap = (__bridge ARWorldMap*)worldMapPtr;
+        NSError* writeError = nil;
+        NSURL* url = [[NSURL alloc] initFileURLWithPath:[NSString stringWithUTF8String:path] isDirectory:false];
+        NSData *data = [NSKeyedArchiver archivedDataWithRootObject:worldMap];
+        [data writeToURL:url options:(NSDataWritingAtomic) error:&writeError];
+        
+        if (writeError)
+            NSLog(@"%@", writeError);
+        
+        return (writeError == nil);
+    }
+    else
+    {
+        // Fallback on earlier versions without ARWorldMap
+        return false;
+    }
 }
 
 void* worldMap_Load(const char* path)
@@ -42,33 +50,57 @@ void* worldMap_Load(const char* path)
     if (error)
         NSLog(@"%@", error);
 
-    ARWorldMap* worldMap = [NSKeyedUnarchiver unarchiveObjectWithData:wmdata];
-    
-    return (__bridge_retained void*)worldMap;
+    if (@available(iOS 12.0, *))
+    {
+        ARWorldMap* worldMap = [NSKeyedUnarchiver unarchiveObjectWithData:wmdata];
+        return (__bridge_retained void*)worldMap;
+    }
+    else
+    {
+        // Fallback on earlier versions of iOS without ARWorldMap
+        return nullptr;
+    }
 }
 
 long worldMap_SerializedLength(const void* worldMapPtr)
 {
-    ARWorldMap* worldMap = (__bridge ARWorldMap*)worldMapPtr;
-    NSData *data = [NSKeyedArchiver archivedDataWithRootObject:worldMap];
-    return data.length;
+    if (@available(iOS 12.0, *))
+    {
+        ARWorldMap* worldMap = (__bridge ARWorldMap*)worldMapPtr;
+        NSData *data = [NSKeyedArchiver archivedDataWithRootObject:worldMap];
+        return data.length;
+    }
+    else
+    {
+        // Fallback on earlier versions
+        return 0;
+    }
 }
     
 void worldMap_SerializeToByteArray(const void*  worldMapPtr, void*  pinnedArray)
 {
-    ARWorldMap* worldMap = (__bridge ARWorldMap*)worldMapPtr;
-    NSData *data = [NSKeyedArchiver archivedDataWithRootObject:worldMap];
-    memcpy(pinnedArray, data.bytes, data.length);
-    
+    if (@available(iOS 12.0, *))
+    {
+        ARWorldMap* worldMap = (__bridge ARWorldMap*)worldMapPtr;
+        NSData *data = [NSKeyedArchiver archivedDataWithRootObject:worldMap];
+        memcpy(pinnedArray, data.bytes, data.length);
+    }
 }
     
 void* worldMap_SerializeFromByteArray(const void*  pinnedArray, long lengthBytes)
 {
-    NSData *wmdata = [NSData dataWithBytes:pinnedArray length:lengthBytes];
     
-    ARWorldMap* worldMap = [NSKeyedUnarchiver unarchiveObjectWithData:wmdata];
-    
-    return (__bridge_retained void*)worldMap;
+    if (@available(iOS 12.0, *))
+    {
+        NSData *wmdata = [NSData dataWithBytes:pinnedArray length:lengthBytes];
+        ARWorldMap* worldMap = [NSKeyedUnarchiver unarchiveObjectWithData:wmdata];
+        return (__bridge_retained void*)worldMap;
+    }
+    else
+    {
+        // Fallback on earlier versions
+        return nullptr;
+    }
 }
 
 UnityARVector3 worldMap_GetCenter(const void* worldMapPtr)
@@ -76,13 +108,21 @@ UnityARVector3 worldMap_GetCenter(const void* worldMapPtr)
     if (worldMapPtr == nullptr || !worldMap_GetSupported())
         return UnityARVector3{0, 0, 0};
     
-    ARWorldMap* worldMap = (__bridge ARWorldMap*)worldMapPtr;
-    return UnityARVector3
+    if (@available(iOS 12.0, *))
     {
-        worldMap.center.x,
-        worldMap.center.y,
-        worldMap.center.z
-    };
+        ARWorldMap* worldMap = (__bridge ARWorldMap*)worldMapPtr;
+        return UnityARVector3
+        {
+            worldMap.center.x,
+            worldMap.center.y,
+            worldMap.center.z
+        };
+    }
+    else
+    {
+        // Fallback on earlier versions
+        return UnityARVector3{0, 0, 0};
+    }
 }
 
 UnityARVector3 worldMap_GetExtent(const void* worldMapPtr)
@@ -90,13 +130,20 @@ UnityARVector3 worldMap_GetExtent(const void* worldMapPtr)
     if (worldMapPtr == nullptr || !worldMap_GetSupported())
         return UnityARVector3{0, 0, 0};
     
-    ARWorldMap* worldMap = (__bridge ARWorldMap*)worldMapPtr;
-    return UnityARVector3
+    if (@available(iOS 12.0, *)) {
+        ARWorldMap* worldMap = (__bridge ARWorldMap*)worldMapPtr;
+        return UnityARVector3
+        {
+            worldMap.extent.x,
+            worldMap.extent.y,
+            worldMap.extent.z
+        };
+    }
+    else
     {
-        worldMap.extent.x,
-        worldMap.extent.y,
-        worldMap.extent.z
-    };
+        // Fallback on earlier versions
+        return UnityARVector3{0, 0, 0};
+    }
 }
 
 void* worldMap_GetPointCloud(const void* worldMapPtr)
@@ -104,11 +151,17 @@ void* worldMap_GetPointCloud(const void* worldMapPtr)
     if (worldMapPtr == nullptr || !worldMap_GetSupported())
         return nullptr;
     
-    ARWorldMap* worldMap = (__bridge ARWorldMap*)worldMapPtr;
-    
-    ARPointCloud *pointCloud = [worldMap rawFeaturePoints];
-
-    return (__bridge_retained void*)pointCloud;
+    if (@available(iOS 12.0, *))
+    {
+        ARWorldMap* worldMap = (__bridge ARWorldMap*)worldMapPtr;
+        ARPointCloud *pointCloud = [worldMap rawFeaturePoints];
+        return (__bridge_retained void*)pointCloud;
+    }
+    else
+    {
+        // Fallback on earlier versions
+        return nullptr;
+    }
 }
 
 #ifdef __cplusplus

@@ -1,7 +1,7 @@
 # Exclude temp nibs and swap files
 *~.nib
 *.swp
- 
+
 # Exclude OS X folder attributes
 .DS_Store
 
@@ -70,3 +70,6 @@ AdjustPostBuildAndroidLog.txt
 current_platform.txt
 Library_iOS
 Library_Android
+
+Logs/*.log
+Packages/manifest.json

@@ -57,6 +57,7 @@ static inline UnityARTrackingReason GetUnityARTrackingReasonFromARTrackingReason
     }
 }
 
+API_AVAILABLE(ios(12.0))
 static inline UnityARWorldMappingStatus GetUnityARWorldMappingStatusFromARWorldMappingStatus(ARWorldMappingStatus worldMappingStatus)
 {
     switch (worldMappingStatus) {
@@ -75,6 +76,7 @@ static inline UnityARWorldMappingStatus GetUnityARWorldMappingStatusFromARWorldM
 }
 
 
+API_AVAILABLE(ios(12.0))
 static inline AREnvironmentTexturing GetAREnvironmentTexturingFromUnityAREnvironmentTexturing(UnityAREnvironmentTexturing& unityEnvTexturing)
 {
     switch (unityEnvTexturing)
@@ -96,12 +98,15 @@ inline void GetARSessionConfigurationFromARKitWorldTrackingSessionConfiguration(
     appleConfig.worldAlignment = GetARWorldAlignmentFromUnityARAlignment(unityConfig.alignment);
     appleConfig.lightEstimationEnabled = (BOOL)unityConfig.enableLightEstimation;
     
-    if ([appleConfig respondsToSelector:@selector(maximumNumberOfTrackedImages)])
+    if (@available(iOS 12.0, *))
+    {
         appleConfig.maximumNumberOfTrackedImages = unityConfig.maximumNumberOfTrackedImages;
+    }
     
-    if (UnityIsARKit_1_5_Supported())
+    if (@available(iOS 11.3, *))
     {
         appleConfig.autoFocusEnabled = (BOOL) unityConfig.enableAutoFocus;
+
         if (unityConfig.ptrVideoFormat != NULL)
         {
             appleConfig.videoFormat = (__bridge ARVideoFormat*) unityConfig.ptrVideoFormat;
@@ -110,9 +115,10 @@ inline void GetARSessionConfigurationFromARKitWorldTrackingSessionConfiguration(
     
     if (UnityIsARKit_2_0_Supported())
     {
-        appleConfig.initialWorldMap = (__bridge ARWorldMap*)unityConfig.ptrWorldMap;
-        appleConfig.environmentTexturing = GetAREnvironmentTexturingFromUnityAREnvironmentTexturing(unityConfig.environmentTexturing);
-      
+        if (@available(iOS 12.0, *)) {
+            appleConfig.initialWorldMap = (__bridge ARWorldMap*)unityConfig.ptrWorldMap;
+            appleConfig.environmentTexturing = GetAREnvironmentTexturingFromUnityAREnvironmentTexturing(unityConfig.environmentTexturing);
+        }
     }
 }
 
@@ -122,20 +128,21 @@ inline void GetARSessionConfigurationFromARKitSessionConfiguration(ARKitSessionC
     appleConfig.lightEstimationEnabled = (BOOL)unityConfig.enableLightEstimation;
 }
 
+#if ARKIT_USES_FACETRACKING
 inline void GetARFaceConfigurationFromARKitFaceConfiguration(ARKitFaceTrackingConfiguration& unityConfig, ARConfiguration* appleConfig)
 {
     appleConfig.worldAlignment = GetARWorldAlignmentFromUnityARAlignment(unityConfig.alignment);
     appleConfig.lightEstimationEnabled = (BOOL)unityConfig.enableLightEstimation;
     
-    if (UnityIsARKit_1_5_Supported())
+    if (@available(iOS 11.3, *))
     {
         if (unityConfig.ptrVideoFormat != NULL)
         {
             appleConfig.videoFormat = (__bridge ARVideoFormat*) unityConfig.ptrVideoFormat;
         }
     }
-
 }
+#endif
 
 static inline void GetUnityARCameraDataFromCamera(UnityARCamera& unityARCamera, ARCamera* camera)
 {
@@ -149,6 +156,7 @@ static inline void GetUnityARCameraDataFromCamera(UnityARCamera& unityARCamera, 
     unityARCamera.trackingReason = GetUnityARTrackingReasonFromARTrackingReason(camera.trackingStateReason);
 }
 
+API_AVAILABLE(ios(11.3))
 inline void UnityARPlaneGeometryFromARPlaneGeometry(UnityARPlaneGeometry& planeGeometry, ARPlaneGeometry *arPlaneGeometry)
 {
     planeGeometry.vertexCount = arPlaneGeometry.vertexCount;
@@ -174,7 +182,7 @@ inline void UnityARAnchorDataFromARAnchorPtr(UnityARAnchorData& anchorData, ARPl
     anchorData.extent.y = nativeAnchor.extent.y;
     anchorData.extent.z = nativeAnchor.extent.z;
     
-    if (UnityIsARKit_1_5_Supported())
+    if (@available(iOS 11.3, *))
     {
         UnityARPlaneGeometryFromARPlaneGeometry(anchorData.planeGeometry, nativeAnchor.geometry);
     }
@@ -241,6 +249,7 @@ inline void UnityARFaceAnchorDataFromARFaceAnchorPtr(UnityARFaceAnchorData& anch
 }
 #endif
 
+API_AVAILABLE(ios(11.3))
 inline void UnityARImageAnchorDataFromARImageAnchorPtr(UnityARImageAnchorData& anchorData, ARImageAnchor* nativeAnchor)
 {
     anchorData.identifier = (void*)[nativeAnchor.identifier.UUIDString UTF8String];
@@ -404,21 +413,27 @@ inline void UnityLightDataFromARFrame(UnityLightData& lightData, ARFrame *arFram
 -(void)sendAnchorAddedEvent:(ARAnchor*)anchor
 {
     UnityARImageAnchorData data;
-    UnityARImageAnchorDataFromARImageAnchorPtr(data, (ARImageAnchor*)anchor);
+    if (@available(iOS 11.3, *)) {
+        UnityARImageAnchorDataFromARImageAnchorPtr(data, (ARImageAnchor*)anchor);
+    }
     _anchorAddedCallback(data);
 }
 
 -(void)sendAnchorRemovedEvent:(ARAnchor*)anchor
 {
     UnityARImageAnchorData data;
-    UnityARImageAnchorDataFromARImageAnchorPtr(data, (ARImageAnchor*)anchor);
+    if (@available(iOS 11.3, *)) {
+        UnityARImageAnchorDataFromARImageAnchorPtr(data, (ARImageAnchor*)anchor);
+    }
     _anchorRemovedCallback(data);
 }
 
 -(void)sendAnchorUpdatedEvent:(ARAnchor*)anchor
 {
     UnityARImageAnchorData data;
-    UnityARImageAnchorDataFromARImageAnchorPtr(data, (ARImageAnchor*)anchor);
+    if (@available(iOS 11.3, *)) {
+        UnityARImageAnchorDataFromARImageAnchorPtr(data, (ARImageAnchor*)anchor);
+    } 
     _anchorUpdatedCallback(data);
 }
 
@@ -475,9 +490,9 @@ static CGAffineTransform s_CurAffineTransform;
 
     GetUnityARCameraDataFromCamera(unityARCamera, frame.camera);
 
-    if (_getPointCloudData && frame.rawFeaturePoints != NULL)
+    if (_getPointCloudData && frame.rawFeaturePoints != nullptr)
     {
-        unityARCamera.ptrPointCloud = (__bridge void *) frame.rawFeaturePoints;
+        unityARCamera.ptrPointCloud = (__bridge_retained void *) frame.rawFeaturePoints;
     }
     else
     {
@@ -510,7 +525,10 @@ static CGAffineTransform s_CurAffineTransform;
     
     if (UnityIsARKit_2_0_Supported())
     {
-        unityARCamera.worldMappingStatus = GetUnityARWorldMappingStatusFromARWorldMappingStatus(frame.worldMappingStatus);
+        if (@available(iOS 12.0, *))
+        {
+            unityARCamera.worldMappingStatus = GetUnityARWorldMappingStatusFromARWorldMappingStatus(frame.worldMappingStatus);
+        }
     }
 
     if (_frameCallback != NULL)
@@ -554,6 +572,10 @@ static CGAffineTransform s_CurAffineTransform;
 
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             _frameCallback(unityARCamera);
+            if (unityARCamera.ptrPointCloud != nullptr)
+            {
+                CFRelease(unityARCamera.ptrPointCloud);
+            }
         });
     }
 
@@ -795,7 +817,7 @@ extern "C" void session_SetImageAnchorCallbacks(const void* session, UNITY_AR_IM
                                                 UNITY_AR_IMAGE_ANCHOR_CALLBACK imageAnchorUpdatedCallback,
                                                 UNITY_AR_IMAGE_ANCHOR_CALLBACK imageAnchorRemovedCallback)
 {
-    if (UnityIsARKit_1_5_Supported())
+    if (@available(iOS 11.3, *))
     {
         UnityARSession* nativeSession = (__bridge UnityARSession*)session;
         UnityARImageAnchorCallbackWrapper* imageAnchorCallbacks = [[UnityARImageAnchorCallbackWrapper alloc] init];
@@ -830,33 +852,38 @@ extern "C" void StartWorldTrackingSessionWithOptions(void* nativeSession, ARKitW
     if(UnityIsARKit_1_5_Supported() && unityConfig.referenceImagesResourceGroup != NULL && strlen(unityConfig.referenceImagesResourceGroup) > 0)
     {
         NSString *strResourceGroup = [[NSString alloc] initWithUTF8String:unityConfig.referenceImagesResourceGroup];
-        NSSet<ARReferenceImage *> *referenceImages = [ARReferenceImage referenceImagesInGroupNamed:strResourceGroup bundle:nil];
-        config.detectionImages = referenceImages;
+        if (@available(iOS 11.3, *)) {
+            NSSet<ARReferenceImage *> *referenceImages = [ARReferenceImage referenceImagesInGroupNamed:strResourceGroup bundle:nil];
+            config.detectionImages = referenceImages;
+        } 
     }
 
     if(UnityIsARKit_2_0_Supported())
     {
-        NSMutableSet<ARReferenceObject *> *referenceObjects = nullptr;
-        if (unityConfig.referenceObjectsResourceGroup != NULL && strlen(unityConfig.referenceObjectsResourceGroup) > 0)
+        if (@available(iOS 12.0, *))
         {
-            NSString *strResourceGroup = [[NSString alloc] initWithUTF8String:unityConfig.referenceObjectsResourceGroup];
-            [referenceObjects setByAddingObjectsFromSet:[ARReferenceObject referenceObjectsInGroupNamed:strResourceGroup bundle:nil]];
-        }
-        
-        if (unityConfig.ptrDynamicReferenceObjects != nullptr)
-        {
-            NSSet<ARReferenceObject *> *dynamicReferenceObjects = (__bridge NSSet<ARReferenceObject *> *)unityConfig.ptrDynamicReferenceObjects;
-            if (referenceObjects != nullptr)
+            NSMutableSet<ARReferenceObject *> *referenceObjects = nullptr;
+            if (unityConfig.referenceObjectsResourceGroup != NULL && strlen(unityConfig.referenceObjectsResourceGroup) > 0)
             {
-                [referenceObjects setByAddingObjectsFromSet:dynamicReferenceObjects];
+                NSString *strResourceGroup = [[NSString alloc] initWithUTF8String:unityConfig.referenceObjectsResourceGroup];
+                [referenceObjects setByAddingObjectsFromSet:[ARReferenceObject referenceObjectsInGroupNamed:strResourceGroup bundle:nil]];
             }
-            else
+            
+            if (unityConfig.ptrDynamicReferenceObjects != nullptr)
             {
-                referenceObjects = dynamicReferenceObjects;
+                NSSet<ARReferenceObject *> *dynamicReferenceObjects = (__bridge NSSet<ARReferenceObject *> *)unityConfig.ptrDynamicReferenceObjects;
+                if (referenceObjects != nullptr)
+                {
+                    [referenceObjects setByAddingObjectsFromSet:dynamicReferenceObjects];
+                }
+                else
+                {
+                    referenceObjects = dynamicReferenceObjects;
+                }
             }
+            
+            config.detectionObjects = referenceObjects;
         }
-        
-        config.detectionObjects = referenceObjects;
     }
     
     if (runOptions == UnityARSessionRunOptionsNone)
@@ -963,7 +990,7 @@ extern "C" void SessionRemoveUserAnchor(void* nativeSession, const char * anchor
 
 extern "C" void SessionSetWorldOrigin(void* nativeSession, UnityARMatrix4x4 worldMatrix)
 {
-    if (UnityIsARKit_1_5_Supported())
+    if (@available(iOS 11.3, *))
     {
         UnityARSession* session = (__bridge UnityARSession*)nativeSession;
         matrix_float4x4 arWorldMatrix;
@@ -1094,7 +1121,7 @@ extern "C" bool IsARKitSessionConfigurationSupported()
 
 extern "C" void EnumerateVideoFormats(UNITY_AR_VIDEOFORMAT_CALLBACK videoFormatCallback)
 {
-    if (UnityIsARKit_1_5_Supported())
+    if (@available(iOS 11.3, *))
     {
         for(ARVideoFormat* arVideoFormat in ARWorldTrackingConfiguration.supportedVideoFormats)
         {
@@ -1110,7 +1137,8 @@ extern "C" void EnumerateVideoFormats(UNITY_AR_VIDEOFORMAT_CALLBACK videoFormatC
 
 extern "C" void EnumerateFaceTrackingVideoFormats(UNITY_AR_VIDEOFORMAT_CALLBACK videoFormatCallback)
 {
-    if (UnityIsARKit_1_5_Supported())
+#if ARKIT_USES_FACETRACKING
+    if (@available(iOS 11.3, *))
     {
         for(ARVideoFormat* arVideoFormat in ARFaceTrackingConfiguration.supportedVideoFormats)
         {
@@ -1122,6 +1150,9 @@ extern "C" void EnumerateFaceTrackingVideoFormats(UNITY_AR_VIDEOFORMAT_CALLBACK 
             videoFormatCallback(videoFormat);
         }
     }
+#else
+    [NSException raise:@"UnityARKitPluginFaceTrackingNotEnabled" format:@"UnityARKitPlugin: Checking FaceTracking video formats without enabling it in settings."];
+#endif
 }
 
 extern "C" bool Native_IsARKit_1_5_Supported()
@@ -1140,6 +1171,7 @@ extern "C" bool IsARKitFaceTrackingConfigurationSupported()
     return ARFaceTrackingConfiguration.isSupported;
 #else
     [NSException raise:@"UnityARKitPluginFaceTrackingNotEnabled" format:@"UnityARKitPlugin: Checking FaceTracking device support without enabling it in settings."];
+    return false;
 #endif
 }
 
@@ -1174,13 +1206,22 @@ void session_GetCurrentWorldMap(void* sessionPtr, const void* callbackPtr)
         return;
     }
     
-    [nativeSession->_session getCurrentWorldMapWithCompletionHandler:^(ARWorldMap* worldMap, NSError* error)
-     {
-         if (error)
-             NSLog(@"%@", error);
-
-         nativeSession->_arSessionWorldMapCompletionHandler(callbackPtr, (__bridge_retained void*)worldMap);
-     }];
+    if (@available(iOS 12.0, *))
+    {
+        [nativeSession->_session getCurrentWorldMapWithCompletionHandler:^(ARWorldMap* worldMap, NSError* error)
+         {
+             if (error)
+                 NSLog(@"%@", error);
+             
+             nativeSession->_arSessionWorldMapCompletionHandler(callbackPtr, (__bridge_retained void*)worldMap);
+         }];
+    }
+    else
+    {
+        // Fallback on earlier versions
+        nativeSession->_arSessionWorldMapCompletionHandler(callbackPtr, nullptr);
+        return;
+    }
 }
 
 void session_ExtractReferenceObject(void * sessionPtr, UnityARMatrix4x4 unityTransform, UnityARVector3 unityCenter, UnityARVector3 unityExtent, const void* callbackPtr)
@@ -1203,23 +1244,39 @@ void session_ExtractReferenceObject(void * sessionPtr, UnityARMatrix4x4 unityTra
     const vector_float3 center{unityCenter.x, unityCenter.y, unityCenter.z};
     const vector_float3 extent{unityExtent.x, unityExtent.y, unityExtent.z};
 
-    [nativeSession->_session createReferenceObjectWithTransform:transform center:center extent:extent completionHandler:^(ARReferenceObject * referenceObject, NSError * error)
+    if (@available(iOS 12.0, *))
     {
-        if (error)
-            NSLog(@"%@", error);
-        nativeSession->_arSessionRefObjExtractCompletionHandler(callbackPtr, (__bridge_retained void*)referenceObject);
-        
-    }];
+        [nativeSession->_session createReferenceObjectWithTransform:transform center:center extent:extent completionHandler:^(ARReferenceObject * referenceObject, NSError * error)
+         {
+             if (error)
+                 NSLog(@"%@", error);
+             nativeSession->_arSessionRefObjExtractCompletionHandler(callbackPtr, (__bridge_retained void*)referenceObject);
+             
+         }];
+    }
+    else
+    {
+        // Fallback on earlier versions
+        nativeSession->_arSessionRefObjExtractCompletionHandler(callbackPtr, nullptr);
+        return;
+    }
 }
     
 bool sessionConfig_IsEnvironmentTexturingSupported()
 {
-    if ([AREnvironmentProbeAnchor class])
-    {
-        return true;
+    if (@available(iOS 12.0, *)) {
+        if ([AREnvironmentProbeAnchor class])
+        {
+            return true;
+        }
+        else
+        {
+            return  false;
+        }
     }
     else
     {
+        // Fallback on earlier versions
         return  false;
     }
 }

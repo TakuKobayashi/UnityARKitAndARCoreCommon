@@ -578,25 +578,28 @@ namespace UnityEngine.XR.iOS.Utils
 			byte[] pointsBuf = null;
 			byte[] idsBuf = null;
 
-			Vector3[] vecPointCloud = pointCloud.Points;
-			if (vecPointCloud != null && vecPointCloud.Length > 0)
+			if (pointCloud != null)
 			{
-				pointsBuf = new byte[vecPointCloud.Length * sizeof(float) * 3];
-				for(int i = 0; i < vecPointCloud.Length; i++)
+				Vector3[] vecPointCloud = pointCloud.Points;
+				if (vecPointCloud != null && vecPointCloud.Length > 0)
 				{
-					int bufferStart = i * 3;
-					Buffer.BlockCopy( BitConverter.GetBytes( vecPointCloud[i].x ), 0, pointsBuf, (bufferStart)*sizeof(float), sizeof(float) );
-					Buffer.BlockCopy( BitConverter.GetBytes( vecPointCloud[i].y ), 0, pointsBuf, (bufferStart+1)*sizeof(float), sizeof(float) );
-					Buffer.BlockCopy( BitConverter.GetBytes( vecPointCloud[i].z ), 0, pointsBuf, (bufferStart+2)*sizeof(float), sizeof(float) );
+					pointsBuf = new byte[vecPointCloud.Length * sizeof(float) * 3];
+					for(int i = 0; i < vecPointCloud.Length; i++)
+					{
+						int bufferStart = i * 3;
+						Buffer.BlockCopy( BitConverter.GetBytes( vecPointCloud[i].x ), 0, pointsBuf, (bufferStart)*sizeof(float), sizeof(float) );
+						Buffer.BlockCopy( BitConverter.GetBytes( vecPointCloud[i].y ), 0, pointsBuf, (bufferStart+1)*sizeof(float), sizeof(float) );
+						Buffer.BlockCopy( BitConverter.GetBytes( vecPointCloud[i].z ), 0, pointsBuf, (bufferStart+2)*sizeof(float), sizeof(float) );
 
+					}
 				}
-			}
 
-			UInt64 [] idsPointCloud = pointCloud.Identifiers;
-			if (idsPointCloud != null && idsPointCloud.Length > 0)
-			{
-				idsBuf = new byte[idsPointCloud.Length * sizeof(ulong)];
-				Buffer.BlockCopy( BitConverter.GetBytes( idsPointCloud[0] ), 0, idsBuf, 0, idsPointCloud.Length * sizeof(ulong) );
+				UInt64 [] idsPointCloud = pointCloud.Identifiers;
+				if (idsPointCloud != null && idsPointCloud.Length > 0)
+				{
+					idsBuf = new byte[idsPointCloud.Length * sizeof(ulong)];
+					Buffer.BlockCopy( BitConverter.GetBytes( idsPointCloud[0] ), 0, idsBuf, 0, idsPointCloud.Length * sizeof(ulong) );
+				}
 			}
 			
 			return new serializablePointCloud(pointsBuf, idsBuf);
