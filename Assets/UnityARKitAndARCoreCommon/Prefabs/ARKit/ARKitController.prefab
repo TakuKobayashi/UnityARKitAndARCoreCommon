@@ -53,7 +53,7 @@ MonoBehaviour:
   fieldObjectAnchorRoot: {fileID: 1716284336249206}
   remoteConnectionPrefab: {fileID: 1214069642587422, guid: 8ce7d6271a01a4274a00066492aed04a,
     type: 3}
-  AppearTouchPrefab: {fileID: 1272065786202396, guid: 070f2aedaf7e744a4b215256751ef8a5,
+  AppearTouchPrefab: {fileID: 1483093577405612, guid: 9c8a1fc58df6b4d8c8c68e2883659c8a,
     type: 3}
 --- !u!1 &1716284336249206
 GameObject:
