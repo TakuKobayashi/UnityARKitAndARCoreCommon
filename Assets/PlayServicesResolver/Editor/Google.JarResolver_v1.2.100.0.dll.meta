@@ -1,9 +1,9 @@
 fileFormatVersion: 2
-guid: 0709f79196d64d11b8171d4ee0249cfe
+guid: a5aedcdec1d2475ab58ce659af1b30c4
 labels:
 - gvh
 - gvh_targets-editor
-- gvh_version-1.2.95.0
+- gvh_version-1.2.100.0
 PluginImporter:
   externalObjects: {}
   serializedVersion: 2
@@ -13,6 +13,7 @@ PluginImporter:
   isPreloaded: 0
   isOverridable: 0
   isExplicitlyReferenced: 0
+  validateReferences: 1
   platformData:
   - first:
       Any: 
