@@ -38,6 +38,7 @@ ExportedObj/
 sysinfo.txt
 
 # Builds
+!*/GoogleARCore/SDK/InstantPreview/Scripts/InstantPreview.apk
 *.apk
 *.unitypackage
 
