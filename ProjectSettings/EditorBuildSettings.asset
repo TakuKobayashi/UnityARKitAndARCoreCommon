@@ -5,7 +5,7 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/UnityARKitAndARCoreCommon/Scenes/ARScene.unity
     guid: ac2d28aaa2495495ea33bc43bed7912a
   - enabled: 0
@@ -14,3 +14,10 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/UnityARKitAndARCoreCommon/Scenes/ARCoreScene.unity
     guid: df02c6f6796544a2eb772eb68dcef0ac
+  - enabled: 0
+    path: Assets/GoogleARCore/Examples/AugmentedFaces/Scenes/AugmentedFaces.unity
+    guid: 7d2be221c0e8f4e259a08279fab0da42
+  - enabled: 1
+    path: Assets/GoogleARCore/Examples/ComputerVision/Scenes/ComputerVision.unity
+    guid: 5ef0f7f7f2c7b4285b707265348bbffd
+  m_configObjects: {}
